@@ -1,0 +1,378 @@
+// VAELO — Agency OS
+// Prisma schema generated from design_handoff/specs/04-DATA-MODEL.md
+// Postgres via Supabase. Money is `Decimal` (never float). Currency = INR (V1).
+// Every client-scoped table carries `clientId` and must be protected by
+// Postgres Row-Level Security (policies live in supabase/migrations).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ----------------------------- Enums -----------------------------
+
+enum Role {
+  owner
+  team
+  client
+}
+
+enum LeadStatus {
+  new
+  contacted
+  proposal_sent
+  won
+  lost
+}
+
+enum ClientStatus {
+  active
+  paused
+  churned
+}
+
+enum ProposalStatus {
+  draft
+  sent
+  viewed
+  accepted
+  declined
+}
+
+enum ProjectStatus {
+  onboarding
+  active
+  paused
+  completed
+}
+
+enum DeliverableType {
+  post
+  reel
+  ad
+  photo
+  other
+}
+
+enum DeliverableStatus {
+  in_review
+  revision
+  approved
+}
+
+enum InvoiceStatus {
+  draft
+  sent
+  paid
+  overdue
+  void
+}
+
+enum RecurringInterval {
+  monthly
+}
+
+enum AssetType {
+  photo
+  video
+  logo
+  doc
+  report
+  creative
+}
+
+enum HealthBand {
+  healthy
+  at_risk
+  churn_risk
+}
+
+enum NotificationChannel {
+  in_app
+  email
+  whatsapp
+}
+
+enum CaseStudyStatus {
+  draft
+  published
+  archived
+}
+
+// ----------------------------- Models -----------------------------
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @unique
+  name      String?
+  role      Role     @default(client)
+  clientId  String?  @map("client_id") @db.Uuid
+  client    Client?  @relation(fields: [clientId], references: [id])
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  notifications Notification[]
+  auditLogs     AuditLog[]
+
+  @@index([clientId])
+  @@map("users")
+}
+
+model Lead {
+  id              String      @id @default(uuid()) @db.Uuid
+  name            String
+  brand           String
+  instagramHandle String?     @map("instagram_handle")
+  goal            String?
+  photoUrl        String?     @map("photo_url")
+  source          String      @default("website")
+  status          LeadStatus  @default(new)
+  notes           String?
+  tags            String[]    @default([])
+  estValue        Decimal?    @map("est_value") @db.Decimal(12, 2)
+  followUpAt      DateTime?   @map("follow_up_at") @db.Timestamptz(6)
+  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  proposals Proposal[]
+
+  @@index([status])
+  @@map("leads")
+}
+
+model Client {
+  id          String       @id @default(uuid()) @db.Uuid
+  name        String
+  contactName String?      @map("contact_name")
+  email       String?
+  whatsapp    String?
+  industry    String?
+  accent      String? // per-client accent hex (UI)
+  status      ClientStatus @default(active)
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  users          User[]
+  proposals      Proposal[]
+  projects       Project[]
+  invoices       Invoice[]
+  retainerUsage  RetainerUsage[]
+  brandBrain     BrandBrain?
+  assetVault     AssetVaultItem[]
+  healthScores   HealthScore[]
+  caseStudies    CaseStudy[]
+
+  @@index([status])
+  @@map("clients")
+}
+
+model Proposal {
+  id          String         @id @default(uuid()) @db.Uuid
+  clientId    String?        @map("client_id") @db.Uuid
+  client      Client?        @relation(fields: [clientId], references: [id])
+  leadId      String?        @map("lead_id") @db.Uuid
+  lead        Lead?          @relation(fields: [leadId], references: [id])
+  title       String
+  scope       Json?
+  lineItems   Json?          @map("line_items")
+  total       Decimal        @default(0) @db.Decimal(12, 2)
+  publicToken String         @unique @default(uuid()) @map("public_token")
+  status      ProposalStatus @default(draft)
+  views       Int            @default(0)
+  viewedAt    DateTime?      @map("viewed_at") @db.Timestamptz(6)
+  acceptedAt  DateTime?      @map("accepted_at") @db.Timestamptz(6)
+  sentAt      DateTime?      @map("sent_at") @db.Timestamptz(6)
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  projects Project[]
+
+  @@index([clientId])
+  @@index([status])
+  @@map("proposals")
+}
+
+model Project {
+  id         String        @id @default(uuid()) @db.Uuid
+  clientId   String        @map("client_id") @db.Uuid
+  client     Client        @relation(fields: [clientId], references: [id])
+  proposalId String?       @map("proposal_id") @db.Uuid
+  proposal   Proposal?     @relation(fields: [proposalId], references: [id])
+  name       String
+  service    String?
+  status     ProjectStatus @default(onboarding)
+  milestones Json? // [{ label, due_date, done }]
+  aiStatus   String?       @map("ai_status")
+  createdAt  DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  deliverables Deliverable[]
+  invoices     Invoice[]
+
+  @@index([clientId])
+  @@index([status])
+  @@map("projects")
+}
+
+model Deliverable {
+  id               String            @id @default(uuid()) @db.Uuid
+  projectId        String            @map("project_id") @db.Uuid
+  project          Project           @relation(fields: [projectId], references: [id])
+  title            String
+  type             DeliverableType   @default(post)
+  status           DeliverableStatus @default(in_review)
+  revisionCount    Int               @default(0) @map("revision_count")
+  currentVersionId String?           @map("current_version_id") @db.Uuid
+  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  versions AssetVersion[]
+
+  @@index([projectId])
+  @@map("deliverables")
+}
+
+model AssetVersion {
+  id            String      @id @default(uuid()) @db.Uuid
+  deliverableId String      @map("deliverable_id") @db.Uuid
+  deliverable   Deliverable @relation(fields: [deliverableId], references: [id])
+  version       Int
+  fileUrl       String      @map("file_url")
+  comments      Json? // [{ author, text, x, y, created_at }]
+  isApproved    Boolean     @default(false) @map("is_approved")
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([deliverableId])
+  @@map("asset_versions")
+}
+
+model Invoice {
+  id                String             @id @default(uuid()) @db.Uuid
+  clientId          String             @map("client_id") @db.Uuid
+  client            Client             @relation(fields: [clientId], references: [id])
+  projectId         String?            @map("project_id") @db.Uuid
+  project           Project?           @relation(fields: [projectId], references: [id])
+  number            String             @unique
+  lineItems         Json?              @map("line_items")
+  subtotal          Decimal            @default(0) @db.Decimal(12, 2)
+  tax               Decimal            @default(0) @db.Decimal(12, 2)
+  total             Decimal            @default(0) @db.Decimal(12, 2)
+  dueDate           DateTime?          @map("due_date") @db.Date
+  status            InvoiceStatus      @default(draft)
+  isRecurring       Boolean            @default(false) @map("is_recurring")
+  recurringInterval RecurringInterval? @map("recurring_interval")
+  razorpayId        String?            @map("razorpay_id")
+  paidAt            DateTime?          @map("paid_at") @db.Timestamptz(6)
+  createdAt         DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([clientId])
+  @@index([status])
+  @@map("invoices")
+}
+
+model RetainerUsage {
+  id         String   @id @default(uuid()) @db.Uuid
+  clientId   String   @map("client_id") @db.Uuid
+  client     Client   @relation(fields: [clientId], references: [id])
+  cycleStart DateTime @map("cycle_start") @db.Date
+  cycleEnd   DateTime @map("cycle_end") @db.Date
+  limits     Json // { posts: 20, reels: 5, campaigns: 2 }
+  used       Json // { posts: 18, reels: 5, campaigns: 1 }
+  monthlyFee Decimal? @map("monthly_fee") @db.Decimal(12, 2)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([clientId])
+  @@map("retainer_usage")
+}
+
+model BrandBrain {
+  id                   String   @id @default(uuid()) @db.Uuid
+  clientId             String   @unique @map("client_id") @db.Uuid
+  client               Client   @relation(fields: [clientId], references: [id])
+  logos                Json?
+  colors               Json? // hex palette
+  fonts                Json?
+  toneOfVoice          String?  @map("tone_of_voice")
+  toneTags             Json?    @map("tone_tags")
+  audience             String?
+  positioning          String?
+  usps                 Json?
+  competitors          Json?
+  brandRules           Json?    @map("brand_rules") // { always: [], never: [] }
+  pastCampaigns        Json?    @map("past_campaigns")
+  approvedCreativeRefs String[] @default([]) @map("approved_creative_refs") @db.Uuid
+  updatedAt            DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("brand_brain")
+}
+
+model AssetVaultItem {
+  id        String    @id @default(uuid()) @db.Uuid
+  clientId  String    @map("client_id") @db.Uuid
+  client    Client    @relation(fields: [clientId], references: [id])
+  type      AssetType @default(creative)
+  fileUrl   String    @map("file_url")
+  title     String
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([clientId])
+  @@map("asset_vault_items")
+}
+
+model HealthScore {
+  id         String     @id @default(uuid()) @db.Uuid
+  clientId   String     @map("client_id") @db.Uuid
+  client     Client     @relation(fields: [clientId], references: [id])
+  score      Int
+  band       HealthBand
+  factors    Json? // { payment_delay, approval_delay, activity, retainer_age }
+  computedAt DateTime   @default(now()) @map("computed_at") @db.Timestamptz(6)
+
+  @@index([clientId])
+  @@map("health_scores")
+}
+
+model CaseStudy {
+  id        String          @id @default(uuid()) @db.Uuid
+  clientId  String?         @map("client_id") @db.Uuid
+  client    Client?         @relation(fields: [clientId], references: [id])
+  title     String
+  subtitle  String?
+  category  String?
+  challenge String?
+  results   Json? // [{ label, value }]
+  media     Json?
+  seo       Json?
+  status    CaseStudyStatus @default(draft)
+  updatedAt DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdAt DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([clientId])
+  @@index([status])
+  @@map("case_studies")
+}
+
+model Notification {
+  id        String              @id @default(uuid()) @db.Uuid
+  userId    String              @map("user_id") @db.Uuid
+  user      User                @relation(fields: [userId], references: [id])
+  channel   NotificationChannel @default(in_app)
+  type      String
+  payload   Json?
+  readAt    DateTime?           @map("read_at") @db.Timestamptz(6)
+  createdAt DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([userId])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  actorId   String?  @map("actor_id") @db.Uuid
+  actor     User?    @relation(fields: [actorId], references: [id])
+  action    String
+  entity    String?
+  entityId  String?  @map("entity_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("audit_logs")
+}
