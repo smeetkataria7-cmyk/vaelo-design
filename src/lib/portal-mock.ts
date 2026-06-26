@@ -47,3 +47,18 @@ export const vaultItems = [
   { id: "v5", title: "May Report", type: "Report", grad: ["#2a9d8f", "#176055"] },
   { id: "v6", title: "Festive Stories", type: "Photo set", grad: ["#3b82f6", "#1d4ed8"] },
 ];
+
+export const portalContract = {
+  title: "Full-Service Retainer Agreement",
+  ref: "MSA-2025-014",
+  monthly: 48000,
+  term: "12 months · auto-renew",
+  sentBy: "Alex Vaelo",
+  sentAt: "2h ago",
+  scope: [
+    "20 social posts + 5 reels each month",
+    "1 managed ad campaign (ad spend billed separately)",
+    "Monthly performance report + strategy call",
+    "Brand Brain kept current",
+  ],
+};

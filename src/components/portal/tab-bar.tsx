@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, CheckSquare, FolderArchive, Receipt, type LucideIcon } from "lucide-react";
+import { Home, CheckSquare, PenLine, FolderArchive, Receipt, type LucideIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 const TABS: { label: string; href: string; icon: LucideIcon }[] = [
   { label: "Home", href: "/portal", icon: Home },
   { label: "Approve", href: "/portal/approve", icon: CheckSquare },
+  { label: "Sign", href: "/portal/sign", icon: PenLine },
   { label: "Vault", href: "/portal/vault", icon: FolderArchive },
   { label: "Bills", href: "/portal/bills", icon: Receipt },
 ];
@@ -16,7 +17,7 @@ const TABS: { label: string; href: string; icon: LucideIcon }[] = [
 export function TabBar() {
   const pathname = usePathname();
   return (
-    <nav className="sticky bottom-0 z-20 grid grid-cols-4 border-t border-line bg-paper/95 backdrop-blur">
+    <nav className="sticky bottom-0 z-20 grid grid-cols-5 border-t border-line bg-paper/95 backdrop-blur">
       {TABS.map((t) => {
         const active = pathname === t.href;
         const Icon = t.icon;

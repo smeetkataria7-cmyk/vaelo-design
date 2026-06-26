@@ -651,3 +651,168 @@ export const integrations: Integration[] = [
   { key: "meta", name: "Meta Graph + Marketing API", desc: "Instagram insights · Ad performance reports", status: "pending", note: "App review: 14d est.", iconBg: "#1877f2" },
   { key: "fal", name: "Fal.ai", desc: "AI image generation · Creative drafts", status: "disconnected", note: "Connect", iconBg: "#7c3aed" },
 ];
+
+// ----------------------------- Contracts -----------------------------
+
+export type ContractStatus = "draft" | "sent" | "signed" | "expired";
+
+export interface Contract {
+  id: string;
+  title: string;
+  clientName: string;
+  accent: string;
+  value: number; // total contract value
+  term: string;
+  status: ContractStatus;
+  sent?: string;
+  signed?: string;
+  note?: string;
+}
+
+export const contracts: Contract[] = [
+  { id: "ct1", title: "Master Services Agreement", clientName: "DVOC Institute", accent: CLIENT_ACCENT.dvoc, value: 720000, term: "12 months", status: "signed", sent: "Apr 1", signed: "Apr 3", note: "Auto-renews Apr 2027" },
+  { id: "ct2", title: "Full-Service Retainer", clientName: "Marigold Miraya", accent: CLIENT_ACCENT.marigold, value: 576000, term: "12 months", status: "signed", sent: "Mar 15", signed: "Mar 18" },
+  { id: "ct3", title: "Content + Ads Retainer", clientName: "Zerolys", accent: CLIENT_ACCENT.zerolys, value: 240000, term: "6 months", status: "signed", sent: "Feb 2", signed: "Feb 5" },
+  { id: "ct4", title: "Starter Package — SOW", clientName: "The Salt Room", accent: "#b06f3c", value: 420000, term: "12 months", status: "sent", sent: "Jun 20", note: "Awaiting client signature" },
+  { id: "ct5", title: "Sound Identity Project", clientName: "Arcivox Studios", accent: CLIENT_ACCENT.arcivox, value: 180000, term: "Project-based", status: "draft", note: "Scope under review" },
+  { id: "ct6", title: "Annual Retainer 2024", clientName: "Lumina Labs", accent: CLIENT_ACCENT.lumina, value: 420000, term: "12 months", status: "expired", sent: "Jun 1, 2024", signed: "Jun 4, 2024", note: "Renewal due" },
+];
+
+export const contractPipeline = [
+  { label: "Draft", value: 1, tone: "neutral" as const },
+  { label: "Sent", value: 1, tone: "warning" as const },
+  { label: "Signed", value: 3, tone: "success" as const },
+  { label: "Expired", value: 1, tone: "error" as const },
+];
+
+// ----------------------------- Finance -----------------------------
+
+export const financeStats = {
+  mrr: { amount: 251340, note: "5 active retainers" },
+  collected: { amount: 216000, note: "Collected this month" },
+  outstanding: { amount: 124000, note: "3 invoices pending" },
+  margin: { pct: 62, note: "Net margin after costs" },
+};
+
+export const revenueByClient = [
+  { name: "DVOC Institute", accent: CLIENT_ACCENT.dvoc, amount: 70800 },
+  { name: "Marigold Miraya", accent: CLIENT_ACCENT.marigold, amount: 56640 },
+  { name: "Zerolys", accent: CLIENT_ACCENT.zerolys, amount: 47200 },
+  { name: "Lumina Labs", accent: CLIENT_ACCENT.lumina, amount: 41300 },
+  { name: "Arcivox Studios", accent: CLIENT_ACCENT.arcivox, amount: 35400 },
+];
+
+export const monthlyRevenue = [
+  { month: "Jan", revenue: 168000, expenses: 64000 },
+  { month: "Feb", revenue: 182000, expenses: 67000 },
+  { month: "Mar", revenue: 196000, expenses: 71000 },
+  { month: "Apr", revenue: 204000, expenses: 73000 },
+  { month: "May", revenue: 212000, expenses: 78000 },
+  { month: "Jun", revenue: 251340, expenses: 82000 },
+];
+
+export const expenseBreakdown = [
+  { label: "Salaries & freelancers", amount: 48000, tone: "var(--info)" },
+  { label: "Ad spend (pass-through)", amount: 18000, tone: "var(--gold)" },
+  { label: "Software & tools", amount: 9000, tone: "var(--success)" },
+  { label: "Operations", amount: 7000, tone: "var(--warning)" },
+];
+
+// ----------------------------- Reports -----------------------------
+
+export const reportKpis = [
+  { label: "Instagram Reach", value: "1.24M", trend: "+18% vs last month", tone: "success" as const },
+  { label: "Avg Engagement", value: "6.8%", trend: "+1.2 pts", tone: "success" as const },
+  { label: "Ad ROAS", value: "3.1×", trend: "+0.4× vs last month", tone: "success" as const },
+  { label: "Leads Generated", value: "184", trend: "+42 this month", tone: "success" as const },
+];
+
+export type AdRow = {
+  clientName: string;
+  accent: string;
+  spend: number;
+  roas: number;
+  leads: number;
+  band: "healthy" | "watch";
+};
+
+export const adPerformance: AdRow[] = [
+  { clientName: "DVOC Institute", accent: CLIENT_ACCENT.dvoc, spend: 120000, roas: 4.2, leads: 86, band: "healthy" },
+  { clientName: "Lumina Labs", accent: CLIENT_ACCENT.lumina, spend: 75000, roas: 3.6, leads: 36, band: "healthy" },
+  { clientName: "Zerolys", accent: CLIENT_ACCENT.zerolys, spend: 60000, roas: 3.2, leads: 28, band: "healthy" },
+  { clientName: "Marigold Miraya", accent: CLIENT_ACCENT.marigold, spend: 90000, roas: 2.6, leads: 34, band: "watch" },
+];
+
+export const audienceGrowth = [
+  { clientName: "Marigold Miraya", accent: CLIENT_ACCENT.marigold, followers: 142800, growth: 22 },
+  { clientName: "DVOC Institute", accent: CLIENT_ACCENT.dvoc, followers: 86200, growth: 14 },
+  { clientName: "Lumina Labs", accent: CLIENT_ACCENT.lumina, followers: 51200, growth: 17 },
+  { clientName: "Zerolys", accent: CLIENT_ACCENT.zerolys, followers: 38400, growth: 9 },
+];
+
+// ----------------------------- Team / People -----------------------------
+
+export type TeamRole = "Owner" | "Strategist" | "Designer" | "Editor" | "Account Manager";
+
+export interface TeamMember {
+  id: string;
+  name: string;
+  initial: string;
+  role: TeamRole;
+  accent: string;
+  email: string;
+  clients: number;
+  status: "active" | "invited";
+}
+
+export const team: TeamMember[] = [
+  { id: "u1", name: "Alex Vaelo", initial: "A", role: "Owner", accent: "#d4af37", email: "alex@vaelo.co", clients: 5, status: "active" },
+  { id: "u2", name: "Sarah Menon", initial: "S", role: "Account Manager", accent: "#3b82f6", email: "sarah@vaelo.co", clients: 3, status: "active" },
+  { id: "u3", name: "Dev Kapoor", initial: "D", role: "Designer", accent: "#e76f51", email: "dev@vaelo.co", clients: 4, status: "active" },
+  { id: "u4", name: "Ria Sharma", initial: "R", role: "Editor", accent: "#2a9d8f", email: "ria@vaelo.co", clients: 4, status: "active" },
+  { id: "u5", name: "Karan Joshi", initial: "K", role: "Strategist", accent: "#9b59b6", email: "karan@vaelo.co", clients: 2, status: "active" },
+  { id: "u6", name: "John Pereira", initial: "J", role: "Editor", accent: "#f59e0b", email: "john@vaelo.co", clients: 0, status: "invited" },
+];
+
+export const teamRoleTone: Record<TeamRole, string> = {
+  Owner: "var(--gold)",
+  Strategist: "var(--c-arcivox)",
+  Designer: "var(--c-marigold)",
+  Editor: "var(--c-zerolys)",
+  "Account Manager": "var(--info)",
+};
+
+// ----------------------------- Creatives library -----------------------------
+
+export type CreativeStatus = "approved" | "in_review" | "delivered" | "draft";
+export type CreativeKind = "Reel" | "Post" | "Story" | "Ad";
+
+export interface Creative {
+  id: string;
+  title: string;
+  clientName: string;
+  grad: [string, string];
+  kind: CreativeKind;
+  duration?: string;
+  version: number;
+  status: CreativeStatus;
+}
+
+export const creativeLibrary: Creative[] = [
+  { id: "cr1", title: "Summer Lookbook · Post 1", clientName: "Marigold Miraya", grad: ["#e76f51", "#a8442c"], kind: "Post", version: 2, status: "in_review" },
+  { id: "cr2", title: "Festive Reel · Cut B", clientName: "Marigold Miraya", grad: ["#f4a261", "#c97b35"], kind: "Reel", duration: "0:42", version: 1, status: "in_review" },
+  { id: "cr3", title: "Placement Stories", clientName: "DVOC Institute", grad: ["#c8331f", "#7a1d12"], kind: "Story", version: 1, status: "approved" },
+  { id: "cr4", title: "Course Launch Ad", clientName: "DVOC Institute", grad: ["#1e2a4a", "#0d1426"], kind: "Ad", duration: "0:31", version: 3, status: "delivered" },
+  { id: "cr5", title: "Eco Series · Reel 04", clientName: "Zerolys", grad: ["#2a9d8f", "#176055"], kind: "Reel", duration: "1:15", version: 1, status: "approved" },
+  { id: "cr6", title: "Packaging Reveal", clientName: "Zerolys", grad: ["#e9c46a", "#b8923a"], kind: "Post", version: 2, status: "delivered" },
+  { id: "cr7", title: "Feature Walkthrough", clientName: "Lumina Labs", grad: ["#3b82f6", "#1d4ed8"], kind: "Reel", duration: "1:48", version: 1, status: "approved" },
+  { id: "cr8", title: "Benchmark Carousel", clientName: "Lumina Labs", grad: ["#0f172a", "#020617"], kind: "Post", version: 1, status: "draft" },
+  { id: "cr9", title: "Sonic Brand Teaser", clientName: "Arcivox Studios", grad: ["#9b59b6", "#5e3470"], kind: "Reel", duration: "0:58", version: 2, status: "delivered" },
+];
+
+export const creativeStats = [
+  { label: "In Review", value: 2, tone: "warning" as const },
+  { label: "Approved", value: 3, tone: "success" as const },
+  { label: "Delivered", value: 3, tone: "info" as const },
+  { label: "Drafts", value: 1, tone: "neutral" as const },
+];
