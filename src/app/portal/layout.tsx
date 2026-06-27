@@ -1,10 +1,18 @@
-import { TabBar } from "@/components/portal/tab-bar";
+import { redirect } from "next/navigation";
 
-export default function PortalLayout({
+import { TabBar } from "@/components/portal/tab-bar";
+import { getViewer } from "@/lib/auth";
+
+export const dynamic = "force-dynamic";
+
+export default async function PortalLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const viewer = await getViewer();
+  if (!viewer.email) redirect("/auth/login?next=/portal");
+
   return (
     <div className="min-h-screen bg-paper-2 lg:py-8">
       {/* Mobile-first: full width on phones; framed device column on desktop. */}

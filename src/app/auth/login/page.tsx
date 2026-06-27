@@ -1,36 +1,59 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Eye, EyeOff, Loader2, AlertCircle, MailCheck } from "lucide-react";
 
+import { createClient } from "@/lib/supabase/client";
+import { signedInDestination } from "@/app/auth/actions";
 import { LogoMark } from "@/components/app/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const PIPELINE = [
-  "Lead captured",
-  "AI proposal",
-  "Creatives approved",
-  "Invoice paid",
-];
+const PIPELINE = ["Lead captured", "AI proposal", "Creatives approved", "Invoice paid"];
 
-export default function LoginPage() {
+function LoginInner() {
+  const params = useSearchParams();
+  const next = params.get("next");
+
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<"idle" | "loading" | "confirm" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
 
-  function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setStatus("loading");
     setError(null);
-    setLoading(true);
-    // Demo: simulate an auth round-trip then surface the error state.
-    setTimeout(() => {
-      setLoading(false);
-      setError("Invalid email or password");
-    }, 1100);
+    const supabase = createClient();
+    const creds = { email: email.trim(), password };
+
+    try {
+      if (mode === "signup") {
+        const { data, error } = await supabase.auth.signUp(creds);
+        if (error) throw error;
+        if (!data.session) {
+          setStatus("confirm");
+          return;
+        }
+      } else {
+        const { error } = await supabase.auth.signInWithPassword(creds);
+        if (error) throw error;
+      }
+      // Decide destination by role (resolved on the server), honoring ?next.
+      const dest = await signedInDestination().catch(() => "/portal");
+      const target = next && next.startsWith("/") ? next : dest;
+      window.location.assign(target);
+    } catch (err) {
+      setStatus("error");
+      setError(err instanceof Error ? err.message : "Something went wrong.");
+    }
   }
+
+  const loading = status === "loading";
 
   return (
     <div className="flex min-h-screen bg-paper">
@@ -79,70 +102,116 @@ export default function LoginPage() {
             <span className="font-display text-[16px] font-semibold text-ink">Vaelo</span>
           </div>
 
-          <h1 className="font-display text-[24px] font-semibold text-ink">Sign in to Vaelo</h1>
-          <p className="mt-1 text-[13px] text-muted">Welcome back. Please enter your details.</p>
-
-          {error && (
-            <div className="mt-5 flex items-center gap-2 rounded-lg border border-error/20 bg-error/[0.07] px-3 py-2 text-[12px] text-error">
-              <AlertCircle className="size-4 shrink-0" />
-              {error}
+          {status === "confirm" ? (
+            <div className="rounded-xl border border-gold/25 bg-gold/[0.06] p-6 text-center">
+              <MailCheck className="mx-auto size-7 text-gold" />
+              <h1 className="mt-3 font-display text-[20px] font-semibold text-ink">Almost there</h1>
+              <p className="mt-2 text-[13px] leading-relaxed text-muted">
+                We&apos;ve emailed <span className="text-ink-2">{email}</span> a confirmation link.
+                Click it, then come back and sign in.
+              </p>
+              <button
+                onClick={() => {
+                  setMode("signin");
+                  setStatus("idle");
+                }}
+                className="mt-5 text-[12px] text-gold hover:underline"
+              >
+                Back to sign in
+              </button>
             </div>
-          )}
+          ) : (
+            <>
+              <h1 className="font-display text-[24px] font-semibold text-ink">
+                {mode === "signin" ? "Sign in to Vaelo" : "Create your account"}
+              </h1>
+              <p className="mt-1 text-[13px] text-muted">
+                {mode === "signin"
+                  ? "Welcome back. Please enter your details."
+                  : "Set up your login to access your workspace."}
+              </p>
 
-          <form onSubmit={onSubmit} className="mt-5 space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="you@brand.com" defaultValue="alex@vaelocreative.com" />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={show ? "text" : "password"}
-                  placeholder="••••••••"
-                  defaultValue="password"
-                  className="pr-10"
-                />
+              {status === "error" && error && (
+                <div className="mt-5 flex items-center gap-2 rounded-lg border border-error/20 bg-error/[0.07] px-3 py-2 text-[12px] text-error">
+                  <AlertCircle className="size-4 shrink-0" />
+                  {error}
+                </div>
+              )}
+
+              <form onSubmit={onSubmit} className="mt-5 space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    required
+                    autoComplete="email"
+                    placeholder="you@brand.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="password">Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={show ? "text" : "password"}
+                      required
+                      minLength={6}
+                      autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShow((s) => !s)}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-3 hover:text-ink-2"
+                      aria-label={show ? "Hide password" : "Show password"}
+                    >
+                      {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <Button type="submit" className="h-11 w-full" disabled={loading}>
+                  {loading ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : mode === "signin" ? (
+                    "Sign in"
+                  ) : (
+                    "Create account"
+                  )}
+                </Button>
+              </form>
+
+              <p className="mt-6 text-center text-[12px] text-muted">
+                {mode === "signin" ? "First time here? " : "Already have an account? "}
                 <button
-                  type="button"
-                  onClick={() => setShow((s) => !s)}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-3 hover:text-ink-2"
-                  aria-label={show ? "Hide password" : "Show password"}
+                  onClick={() => {
+                    setMode(mode === "signin" ? "signup" : "signin");
+                    setStatus("idle");
+                    setError(null);
+                  }}
+                  className="text-gold hover:underline"
                 >
-                  {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  {mode === "signin" ? "Create an account" : "Sign in"}
                 </button>
-              </div>
-            </div>
-
-            <Button type="submit" className="h-11 w-full" disabled={loading}>
-              {loading ? <Loader2 className="size-4 animate-spin" /> : "Sign in"}
-            </Button>
-          </form>
-
-          <div className="mt-4 text-center">
-            <Link href="#" className="text-[12px] text-gold hover:underline">
-              Request access
-            </Link>
-          </div>
-
-          <div className="my-6 flex items-center gap-3 text-[11px] text-muted-3">
-            <div className="h-px flex-1 bg-line" />
-            OR
-            <div className="h-px flex-1 bg-line" />
-          </div>
-
-          <Button variant="secondary" className="h-11 w-full">
-            <svg className="size-4" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z" />
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z" />
-              <path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z" />
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A11 11 0 0 0 2.18 7.06l3.66 2.84C6.71 7.3 9.14 5.38 12 5.38z" />
-            </svg>
-            Continue with Google
-          </Button>
+              </p>
+            </>
+          )}
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginInner />
+    </Suspense>
   );
 }

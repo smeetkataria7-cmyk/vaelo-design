@@ -1,5 +1,6 @@
 import { Download, Play } from "lucide-react";
 
+import { getViewer } from "@/lib/auth";
 import { PageHeader, PageShell } from "@/components/app/page-header";
 import { MetricCard } from "@/components/app/metric-card";
 import { OutputChart } from "@/components/charts/output-chart";
@@ -53,12 +54,17 @@ function Segmented() {
   );
 }
 
-export default function DashboardPage() {
+export const dynamic = "force-dynamic";
+
+export default async function DashboardPage() {
+  const viewer = await getViewer();
+  const name = viewer.email ? viewer.email.split("@")[0] : "there";
+
   return (
     <PageShell>
       <PageHeader
         title="Dashboard"
-        subtitle="Welcome back, Alex. Here's what's happening."
+        subtitle={`Welcome back, ${name}. Here's what's happening.`}
         actions={
           <>
             <Segmented />

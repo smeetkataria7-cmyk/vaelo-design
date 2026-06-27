@@ -1,23 +1,15 @@
 import type { NextConfig } from "next";
 
 /**
- * Static-export mode is enabled only when NEXT_OUTPUT=export (used by the
- * GitHub Pages workflow). Normal `next build` / Vercel keeps full SSR so the
- * Supabase + integrations work later.
+ * SSR app (deploys to Vercel). Real auth (Supabase middleware + cookies) needs
+ * a server, so this is NOT a static export. Configure Supabase + role env vars
+ * in the Vercel project — see .env.example.
  */
-const isExport = process.env.NEXT_OUTPUT === "export";
-const basePath = process.env.NEXT_BASE_PATH || "";
-
 const nextConfig: NextConfig = {
-  ...(isExport
-    ? {
-        output: "export",
-        trailingSlash: true,
-        images: { unoptimized: true },
-        basePath: basePath || undefined,
-        env: { NEXT_PUBLIC_BASE_PATH: basePath },
-      }
-    : {}),
+  experimental: {
+    // Allow larger uploads through server actions (creatives can be a few MB).
+    serverActions: { bodySizeLimit: "20mb" },
+  },
 };
 
 export default nextConfig;

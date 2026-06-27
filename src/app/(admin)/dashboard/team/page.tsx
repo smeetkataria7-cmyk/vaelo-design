@@ -1,5 +1,7 @@
+import { redirect } from "next/navigation";
 import { UserPlus, Mail, MoreVertical } from "lucide-react";
 
+import { getViewer } from "@/lib/auth";
 import { PageHeader, PageShell } from "@/components/app/page-header";
 import { AccentAvatar } from "@/components/app/accent-avatar";
 import { Button } from "@/components/ui/button";
@@ -7,7 +9,12 @@ import { Card } from "@/components/ui/card";
 import { StatusChip } from "@/components/status-chip";
 import { team, teamRoleTone } from "@/lib/mock";
 
-export default function TeamPage() {
+export const dynamic = "force-dynamic";
+
+export default async function TeamPage() {
+  const viewer = await getViewer();
+  if (!viewer.isSuper) redirect("/dashboard");
+
   const active = team.filter((m) => m.status === "active").length;
   const invited = team.filter((m) => m.status === "invited").length;
 

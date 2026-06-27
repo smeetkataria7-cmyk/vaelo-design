@@ -1,9 +1,20 @@
-import { Bell, Search } from "lucide-react";
+import { Bell, Search, LogOut } from "lucide-react";
 
 import { LogoLockup } from "@/components/app/logo";
-import { OWNER } from "@/lib/mock";
+import { signOutAction } from "@/app/auth/actions";
 
-export function Header({ searchPlaceholder = "Search…" }: { searchPlaceholder?: string }) {
+export function Header({
+  searchPlaceholder = "Search…",
+  email,
+  roleLabel = "Client",
+}: {
+  searchPlaceholder?: string;
+  email?: string | null;
+  roleLabel?: string;
+}) {
+  const display = email ?? "";
+  const initial = (display.trim()[0] || "V").toUpperCase();
+
   return (
     <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between border-b border-line bg-paper px-5">
       {/* Left: logo lockup (aligned to sidebar column) */}
@@ -26,7 +37,7 @@ export function Header({ searchPlaceholder = "Search…" }: { searchPlaceholder?
         </div>
       </div>
 
-      {/* Right: bell + avatar */}
+      {/* Right: bell + user + sign out */}
       <div className="flex shrink-0 items-center gap-3">
         <button
           type="button"
@@ -39,18 +50,29 @@ export function Header({ searchPlaceholder = "Search…" }: { searchPlaceholder?
 
         <div className="h-6 w-px bg-line" />
 
-        <button type="button" className="flex items-center gap-2.5 rounded-lg py-1 pl-1 pr-2 transition-colors hover:bg-surface-3">
+        <div className="flex items-center gap-2.5 rounded-lg py-1 pl-1 pr-2">
           <div
             className="grid size-8 place-items-center rounded-full font-display text-[13px] font-semibold text-[#0a0a0a]"
             style={{ background: "linear-gradient(135deg, var(--gold-2), var(--gold-grad-1))" }}
           >
-            {OWNER.initial}
+            {initial}
           </div>
-          <div className="hidden text-left leading-tight sm:block">
-            <div className="text-[13px] font-medium text-ink">{OWNER.name}</div>
-            <div className="text-[11px] text-muted-2">{OWNER.role}</div>
+          <div className="hidden max-w-[160px] text-left leading-tight sm:block">
+            <div className="truncate text-[13px] font-medium text-ink">{display || "Signed in"}</div>
+            <div className="text-[11px] text-muted-2">{roleLabel}</div>
           </div>
-        </button>
+        </div>
+
+        <form action={signOutAction}>
+          <button
+            type="submit"
+            aria-label="Sign out"
+            title="Sign out"
+            className="grid size-9 place-items-center rounded-lg text-muted transition-colors hover:bg-surface-3 hover:text-ink"
+          >
+            <LogOut className="size-[17px]" strokeWidth={1.7} />
+          </button>
+        </form>
       </div>
     </header>
   );

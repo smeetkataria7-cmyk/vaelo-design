@@ -28,6 +28,8 @@ interface NavItem {
   href: string;
   icon: LucideIcon;
   badge?: { value: number; tone: "gold" | "blue" };
+  /** Only visible to master admins (isSuper). */
+  master?: boolean;
 }
 
 interface NavGroup {
@@ -51,14 +53,14 @@ const GROUPS: NavGroup[] = [
       { label: "Contracts", href: "/dashboard/contracts", icon: FileSignature },
       { label: "Invoicing", href: "/dashboard/invoicing", icon: IndianRupee },
       { label: "Retainers", href: "/dashboard/retainers", icon: Repeat },
-      { label: "Finance", href: "/dashboard/finance", icon: Wallet },
+      { label: "Finance", href: "/dashboard/finance", icon: Wallet, master: true },
     ],
   },
   {
     label: "Clients",
     items: [
       { label: "Clients", href: "/dashboard/clients", icon: Users, badge: { value: 5, tone: "gold" } },
-      { label: "Team", href: "/dashboard/team", icon: UserCog },
+      { label: "Team", href: "/dashboard/team", icon: UserCog, master: true },
       { label: "Brand Brain", href: "/dashboard/brand-brain", icon: Sparkles },
     ],
   },
@@ -111,20 +113,25 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
   );
 }
 
-export function Sidebar() {
+export function Sidebar({ isSuper = false }: { isSuper?: boolean }) {
   const pathname = usePathname();
+  const visible = (items: NavItem[]) => items.filter((i) => !i.master || isSuper);
 
   return (
     <aside className="hidden w-[260px] shrink-0 flex-col border-r border-line bg-paper lg:flex">
       <nav className="flex flex-1 flex-col gap-5 overflow-y-auto p-2.5 pt-4">
-        {GROUPS.map((group) => (
-          <div key={group.label} className="flex flex-col gap-0.5">
-            <div className="eyebrow px-3 pb-1.5">{group.label}</div>
-            {group.items.map((item) => (
-              <NavLink key={item.href} item={item} active={isActive(pathname, item.href)} />
-            ))}
-          </div>
-        ))}
+        {GROUPS.map((group) => {
+          const items = visible(group.items);
+          if (items.length === 0) return null;
+          return (
+            <div key={group.label} className="flex flex-col gap-0.5">
+              <div className="eyebrow px-3 pb-1.5">{group.label}</div>
+              {items.map((item) => (
+                <NavLink key={item.href} item={item} active={isActive(pathname, item.href)} />
+              ))}
+            </div>
+          );
+        })}
       </nav>
       <div className="flex flex-col gap-0.5 border-t border-line p-2.5">
         {PINNED.map((item) => (

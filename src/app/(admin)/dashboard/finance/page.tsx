@@ -1,5 +1,7 @@
+import { redirect } from "next/navigation";
 import { Download, TrendingUp, Wallet } from "lucide-react";
 
+import { getViewer } from "@/lib/auth";
 import { PageHeader, PageShell } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,7 +14,12 @@ import {
 } from "@/lib/mock";
 import { formatINR, formatINRCompact } from "@/lib/utils";
 
-export default function FinancePage() {
+export const dynamic = "force-dynamic";
+
+export default async function FinancePage() {
+  const viewer = await getViewer();
+  if (!viewer.isSuper) redirect("/dashboard");
+
   const maxClient = Math.max(...revenueByClient.map((r) => r.amount));
   const maxMonth = Math.max(...monthlyRevenue.map((m) => m.revenue));
   const totalExpenses = expenseBreakdown.reduce((s, e) => s + e.amount, 0);

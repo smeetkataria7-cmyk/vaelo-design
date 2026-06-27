@@ -1,27 +1,17 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { getViewer } from "@/lib/auth";
 
-import { LogoLockup } from "@/components/app/logo";
+export const dynamic = "force-dynamic";
 
-export default function Home() {
-  const router = useRouter();
-
-  useEffect(() => {
-    router.replace("/dashboard");
-  }, [router]);
-
-  return (
-    <div className="grid min-h-screen place-items-center bg-paper">
-      <div className="flex flex-col items-center gap-6 text-center">
-        <LogoLockup />
-        <p className="text-[13px] text-muted">Loading your workspace…</p>
-        <Link href="/dashboard" className="text-[13px] text-gold hover:underline">
-          Continue to dashboard →
-        </Link>
-      </div>
-    </div>
-  );
+/**
+ * Entry point. Routes to the right place by auth + role:
+ *   not signed in → login
+ *   admin / master admin → dashboard
+ *   client → portal
+ */
+export default async function Home() {
+  const viewer = await getViewer();
+  if (!viewer.email) redirect("/auth/login");
+  redirect(viewer.isAdmin ? "/dashboard" : "/portal");
 }
