@@ -13,7 +13,9 @@ let cached: SupabaseClient | null | undefined;
 export function getSupabaseAdmin(): SupabaseClient | null {
   if (cached !== undefined) return cached;
 
-  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  // Prefer the public URL (the one auth already uses) so a stray legacy
+  // SUPABASE_URL pointing at an old project can't desync the service client.
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!url || !serviceKey) {

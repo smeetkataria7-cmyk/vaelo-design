@@ -95,9 +95,10 @@ export default async function TeamPage() {
             <select
               id="role"
               name="role"
-              defaultValue="admin"
+              defaultValue="client"
               className="mt-1.5 h-9 rounded-lg border border-line bg-input-bg px-3 text-[13px] text-ink outline-none focus-visible:border-gold/50"
             >
+              <option value="client">Client (portal)</option>
               <option value="admin">Admin</option>
               <option value="super">Master admin</option>
             </select>
@@ -107,8 +108,8 @@ export default async function TeamPage() {
           </Button>
         </form>
         <p className="text-[12px] text-muted-2">
-          They get access the moment they sign up at the login page with this email. Admins see the
-          dashboard; master admins also get Finance &amp; Team.
+          We email them a link to set a password. <span className="text-ink-2">Clients</span> land in
+          the portal; <span className="text-ink-2">admins</span> get the dashboard; <span className="text-ink-2">master admins</span> also get Finance &amp; Team.
         </p>
         {dbError && (
           <p className="text-[12px] text-error">
