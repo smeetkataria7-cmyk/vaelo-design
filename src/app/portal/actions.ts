@@ -1,9 +1,10 @@
 "use server";
 
+import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
 import { getViewer } from "@/lib/auth";
-import { listFilesForEmail, setFileStatus } from "@/lib/files";
+import { listFilesForEmail, setFileStatus, signedUrlFor } from "@/lib/files";
 import { getContractsForEmail, signContract } from "@/lib/contracts";
 
 async function ownsFile(email: string, id: string): Promise<boolean> {
@@ -25,6 +26,16 @@ export async function reviseFileAction(id: string) {
   await setFileStatus(id, "revision");
   revalidatePath("/portal/approve");
   revalidatePath("/portal");
+}
+
+export async function downloadFileAction(id: string) {
+  const v = await getViewer();
+  if (!v.email) return;
+  const files = await listFilesForEmail(v.email);
+  const f = files.find((x) => x.id === id);
+  if (!f?.path) return;
+  const url = await signedUrlFor(f.path);
+  if (url) redirect(url);
 }
 
 export async function signContractAction(token: string) {

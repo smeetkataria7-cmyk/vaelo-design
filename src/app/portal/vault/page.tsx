@@ -1,8 +1,9 @@
-import { FileText, ExternalLink } from "lucide-react";
+import { FileText, ExternalLink, Download } from "lucide-react";
 
 import { StatusChip, type ChipTone } from "@/components/status-chip";
 import { getViewer } from "@/lib/auth";
 import { listFilesForEmail, type FileRec } from "@/lib/files";
+import { downloadFileAction } from "../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -43,7 +44,7 @@ export default async function PortalVault() {
               <StatusChip tone={TONE[f.status]} className="capitalize">
                 {f.status}
               </StatusChip>
-              {f.link && (
+              {f.link ? (
                 <a
                   href={f.link}
                   target="_blank"
@@ -53,7 +54,17 @@ export default async function PortalVault() {
                 >
                   <ExternalLink className="size-4" />
                 </a>
-              )}
+              ) : f.path ? (
+                <form action={downloadFileAction.bind(null, f.id)}>
+                  <button
+                    type="submit"
+                    className="grid size-8 shrink-0 place-items-center rounded-md text-muted-2 hover:bg-surface-3 hover:text-gold"
+                    aria-label="Download"
+                  >
+                    <Download className="size-4" />
+                  </button>
+                </form>
+              ) : null}
             </div>
           ))}
         </div>
