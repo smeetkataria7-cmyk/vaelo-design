@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Plus } from "lucide-react";
 
 import { PageHeader, PageShell } from "@/components/app/page-header";
@@ -57,8 +58,10 @@ export default async function ProjectsPage() {
             : "Projects appear here as clients are onboarded"
         }
         actions={
-          <Button size="sm">
-            <Plus className="size-4" /> New project
+          <Button asChild size="sm">
+            <Link href="/dashboard/projects/new">
+              <Plus className="size-4" /> New project
+            </Link>
           </Button>
         }
       />

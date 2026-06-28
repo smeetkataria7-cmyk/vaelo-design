@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Plus, ShieldCheck } from "lucide-react";
 
 import { PageHeader, PageShell } from "@/components/app/page-header";
@@ -42,8 +43,10 @@ export default async function ContractsPage() {
             : "Send an agreement and track its signature here"
         }
         actions={
-          <Button size="sm">
-            <Plus className="size-4" /> New contract
+          <Button asChild size="sm">
+            <Link href="/dashboard/contracts/new">
+              <Plus className="size-4" /> New contract
+            </Link>
           </Button>
         }
       />

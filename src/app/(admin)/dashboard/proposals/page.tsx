@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Plus } from "lucide-react";
 
 import { PageHeader, PageShell } from "@/components/app/page-header";
@@ -50,8 +51,10 @@ export default async function ProposalsPage() {
             : "Proposals you send appear here"
         }
         actions={
-          <Button size="sm">
-            <Plus className="size-4" /> New proposal
+          <Button asChild size="sm">
+            <Link href="/dashboard/proposals/new">
+              <Plus className="size-4" /> New proposal
+            </Link>
           </Button>
         }
       />

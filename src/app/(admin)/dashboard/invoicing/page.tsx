@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Plus } from "lucide-react";
 
 import { PageHeader, PageShell } from "@/components/app/page-header";
@@ -56,8 +57,10 @@ export default async function InvoicingPage() {
         title="Invoicing"
         subtitle="INR · GST included"
         actions={
-          <Button size="sm">
-            <Plus className="size-4" /> New invoice
+          <Button asChild size="sm">
+            <Link href="/dashboard/invoicing/new">
+              <Plus className="size-4" /> New invoice
+            </Link>
           </Button>
         }
       />
