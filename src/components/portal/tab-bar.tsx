@@ -17,7 +17,7 @@ const TABS: { label: string; href: string; icon: LucideIcon }[] = [
 export function TabBar() {
   const pathname = usePathname();
   return (
-    <nav className="sticky bottom-0 z-20 grid grid-cols-5 border-t border-line bg-paper/95 backdrop-blur">
+    <nav className="sticky top-16 z-30 flex items-center gap-1 overflow-x-auto border-b border-line bg-paper/95 px-3 backdrop-blur sm:px-6">
       {TABS.map((t) => {
         const active = pathname === t.href;
         const Icon = t.icon;
@@ -26,11 +26,11 @@ export function TabBar() {
             key={t.href}
             href={t.href}
             className={cn(
-              "flex flex-col items-center gap-1 py-2.5 text-[10px] font-medium transition-colors",
-              active ? "text-gold" : "text-muted-2 hover:text-ink-2"
+              "-mb-px flex items-center gap-2 whitespace-nowrap border-b-2 px-3 py-3 text-[13px] font-medium transition-colors",
+              active ? "border-gold text-gold" : "border-transparent text-muted hover:text-ink-2"
             )}
           >
-            <Icon className="size-5" strokeWidth={active ? 2 : 1.6} />
+            <Icon className="size-4" strokeWidth={active ? 2 : 1.7} />
             {t.label}
           </Link>
         );

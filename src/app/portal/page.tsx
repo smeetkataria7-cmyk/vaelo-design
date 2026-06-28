@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight, AlertCircle, Signal, Wifi, BatteryFull, CheckSquare, PenLine } from "lucide-react";
+import { ChevronRight, AlertCircle, CheckSquare, PenLine } from "lucide-react";
 
 import { AccentAvatar } from "@/components/app/accent-avatar";
 import { Button } from "@/components/ui/button";
@@ -13,19 +13,6 @@ import { accentFor } from "@/lib/accent";
 import { formatINR } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
-
-function StatusBar() {
-  return (
-    <div className="flex items-center justify-between px-5 pt-3 text-[11px] font-medium text-ink">
-      <span>9:41</span>
-      <div className="flex items-center gap-1.5">
-        <Signal className="size-3.5" />
-        <Wifi className="size-3.5" />
-        <BatteryFull className="size-4" />
-      </div>
-    </div>
-  );
-}
 
 export default async function PortalHome() {
   const { email } = await getViewer();
@@ -48,8 +35,6 @@ export default async function PortalHome() {
 
   return (
     <div className="pb-6">
-      <StatusBar />
-
       {/* Greeting */}
       <div className="flex items-center gap-3 px-5 pb-4 pt-5">
         <AccentAvatar initial={(name[0] || "?").toUpperCase()} color={accentFor(email ?? name)} size={44} />
