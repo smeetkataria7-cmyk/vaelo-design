@@ -3,9 +3,16 @@ import { Plus, Download } from "lucide-react";
 import { PageHeader, PageShell } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
 import { getLeads, type Lead } from "@/lib/leads";
-import { LEAD_COLUMNS } from "@/lib/mock";
 
 export const dynamic = "force-dynamic";
+
+const LEAD_COLUMNS: { key: string; label: string; tone: string }[] = [
+  { key: "new", label: "New", tone: "var(--info)" },
+  { key: "contacted", label: "Contacted", tone: "var(--warning)" },
+  { key: "proposal", label: "Proposal", tone: "var(--gold)" },
+  { key: "won", label: "Won", tone: "var(--success)" },
+  { key: "lost", label: "Lost", tone: "var(--error)" },
+];
 
 function LeadCard({ lead }: { lead: Lead }) {
   return (
