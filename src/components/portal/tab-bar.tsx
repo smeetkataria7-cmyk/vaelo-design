@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, CheckSquare, PenLine, FolderArchive, Receipt, type LucideIcon } from "lucide-react";
+import { Home, FileText, CheckSquare, PenLine, FolderArchive, Receipt, type LucideIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 const TABS: { label: string; href: string; icon: LucideIcon }[] = [
   { label: "Home", href: "/portal", icon: Home },
+  { label: "Proposals", href: "/portal/proposals", icon: FileText },
   { label: "Approve", href: "/portal/approve", icon: CheckSquare },
   { label: "Sign", href: "/portal/sign", icon: PenLine },
   { label: "Vault", href: "/portal/vault", icon: FolderArchive },

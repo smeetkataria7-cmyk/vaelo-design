@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight, AlertCircle, CheckSquare, PenLine } from "lucide-react";
+import { ChevronRight, AlertCircle, CheckSquare, PenLine, FileText } from "lucide-react";
 
 import { AccentAvatar } from "@/components/app/accent-avatar";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { getInvoicesForEmail } from "@/lib/invoices";
 import { getContractsForEmail } from "@/lib/contracts";
 import { getProjectsForEmail } from "@/lib/projects";
 import { listFilesForEmail } from "@/lib/files";
+import { getProposalsForEmail } from "@/lib/proposals";
 import { accentFor } from "@/lib/accent";
 import { formatINR } from "@/lib/utils";
 
@@ -16,22 +17,25 @@ export const dynamic = "force-dynamic";
 
 export default async function PortalHome() {
   const { email } = await getViewer();
-  const [invoices, contracts, projects, files] = await Promise.all([
+  const [invoices, contracts, projects, files, proposals] = await Promise.all([
     getInvoicesForEmail(email ?? "").catch(() => []),
     getContractsForEmail(email ?? "").catch(() => []),
     getProjectsForEmail(email ?? "").catch(() => []),
     listFilesForEmail(email ?? "").catch(() => []),
+    getProposalsForEmail(email ?? "").catch(() => []),
   ]);
 
   const name =
     invoices[0]?.client_name ||
     contracts[0]?.client_name ||
     projects[0]?.client_name ||
+    proposals[0]?.client_name ||
     (email ? email.split("@")[0] : "there");
 
   const dueInvoice = invoices.find((i) => i.status === "sent" || i.status === "overdue" || i.status === "draft");
   const pendingFiles = files.filter((f) => f.status === "pending");
   const toSign = contracts.filter((c) => c.status === "sent");
+  const openProposals = proposals.filter((p) => p.status === "sent" || p.status === "viewed");
 
   return (
     <div className="pb-6">
@@ -63,6 +67,19 @@ export default async function PortalHome() {
 
       {/* Action cards */}
       <div className="mt-4 space-y-3 px-5">
+        <Link
+          href="/portal/proposals"
+          className="flex items-center gap-3 rounded-[14px] border border-line bg-card p-4 transition-colors hover:border-gold/40"
+        >
+          <FileText className="size-5 text-gold" />
+          <div className="flex-1">
+            <div className="text-[13px] font-medium text-ink">Proposals</div>
+            <div className="text-[12px] text-muted-2">{openProposals.length} to review</div>
+          </div>
+          {openProposals.length > 0 && <StatusChip tone="warning">{openProposals.length}</StatusChip>}
+          <ChevronRight className="size-4 text-muted-3" />
+        </Link>
+
         <Link
           href="/portal/approve"
           className="flex items-center gap-3 rounded-[14px] border border-line bg-card p-4 transition-colors hover:border-gold/40"
