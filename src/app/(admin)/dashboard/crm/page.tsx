@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Plus, Download } from "lucide-react";
 
 import { PageHeader, PageShell } from "@/components/app/page-header";
@@ -52,11 +53,11 @@ export default async function CrmPage() {
         }
         actions={
           <>
-            <Button variant="secondary" size="sm">
-              <Download className="size-4" /> Export CSV
+            <Button asChild variant="secondary" size="sm">
+              <a href="/api/leads/export"><Download className="size-4" /> Export CSV</a>
             </Button>
-            <Button size="sm">
-              <Plus className="size-4" /> Add lead
+            <Button asChild size="sm">
+              <Link href="/dashboard/crm/new"><Plus className="size-4" /> Add lead</Link>
             </Button>
           </>
         }
