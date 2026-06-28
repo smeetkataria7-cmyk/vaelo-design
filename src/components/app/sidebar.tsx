@@ -23,13 +23,15 @@ import {
 
 import { cn } from "@/lib/utils";
 
+export type NavCounts = { leads: number; projects: number; clients: number };
+
 interface NavItem {
   label: string;
   href: string;
   icon: LucideIcon;
-  badge?: { value: number; tone: "gold" | "blue" };
-  /** Only visible to master admins (isSuper). */
-  master?: boolean;
+  badgeKey?: keyof NavCounts;
+  badgeTone?: "gold" | "blue";
+  master?: boolean; // only visible to master admins (isSuper)
 }
 
 interface NavGroup {
@@ -42,8 +44,8 @@ const GROUPS: NavGroup[] = [
     label: "Overview",
     items: [
       { label: "Dashboard", href: "/dashboard", icon: LayoutGrid },
-      { label: "CRM / Leads", href: "/dashboard/crm", icon: UserSearch, badge: { value: 5, tone: "gold" } },
-      { label: "Projects", href: "/dashboard/projects", icon: ClipboardList, badge: { value: 3, tone: "blue" } },
+      { label: "CRM / Leads", href: "/dashboard/crm", icon: UserSearch, badgeKey: "leads", badgeTone: "gold" },
+      { label: "Projects", href: "/dashboard/projects", icon: ClipboardList, badgeKey: "projects", badgeTone: "blue" },
     ],
   },
   {
@@ -59,7 +61,7 @@ const GROUPS: NavGroup[] = [
   {
     label: "Clients",
     items: [
-      { label: "Clients", href: "/dashboard/clients", icon: Users, badge: { value: 5, tone: "gold" } },
+      { label: "Clients", href: "/dashboard/clients", icon: Users, badgeKey: "clients", badgeTone: "gold" },
       { label: "Team", href: "/dashboard/team", icon: UserCog, master: true },
       { label: "Brand Brain", href: "/dashboard/brand-brain", icon: Sparkles },
     ],
@@ -83,7 +85,7 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(href + "/");
 }
 
-function NavLink({ item, active }: { item: NavItem; active: boolean }) {
+function NavLink({ item, active, count }: { item: NavItem; active: boolean; count: number }) {
   const Icon = item.icon;
   return (
     <Link
@@ -97,25 +99,30 @@ function NavLink({ item, active }: { item: NavItem; active: boolean }) {
     >
       <Icon className={cn("size-[15px] shrink-0", active ? "text-gold" : "text-muted")} strokeWidth={1.7} />
       <span className="flex-1 truncate">{item.label}</span>
-      {item.badge && (
+      {count > 0 && (
         <span
           className={cn(
             "flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1.5 text-[10px] font-semibold",
-            item.badge.tone === "gold"
-              ? "bg-gold/15 text-gold"
-              : "bg-info/15 text-info"
+            item.badgeTone === "blue" ? "bg-info/15 text-info" : "bg-gold/15 text-gold"
           )}
         >
-          {item.badge.value}
+          {count}
         </span>
       )}
     </Link>
   );
 }
 
-export function Sidebar({ isSuper = false }: { isSuper?: boolean }) {
+export function Sidebar({
+  isSuper = false,
+  counts = { leads: 0, projects: 0, clients: 0 },
+}: {
+  isSuper?: boolean;
+  counts?: NavCounts;
+}) {
   const pathname = usePathname();
   const visible = (items: NavItem[]) => items.filter((i) => !i.master || isSuper);
+  const countFor = (item: NavItem) => (item.badgeKey ? counts[item.badgeKey] : 0);
 
   return (
     <aside className="hidden w-[260px] shrink-0 flex-col border-r border-line bg-paper lg:flex">
@@ -127,7 +134,7 @@ export function Sidebar({ isSuper = false }: { isSuper?: boolean }) {
             <div key={group.label} className="flex flex-col gap-0.5">
               <div className="eyebrow px-3 pb-1.5">{group.label}</div>
               {items.map((item) => (
-                <NavLink key={item.href} item={item} active={isActive(pathname, item.href)} />
+                <NavLink key={item.href} item={item} active={isActive(pathname, item.href)} count={countFor(item)} />
               ))}
             </div>
           );
@@ -135,7 +142,7 @@ export function Sidebar({ isSuper = false }: { isSuper?: boolean }) {
       </nav>
       <div className="flex flex-col gap-0.5 border-t border-line p-2.5">
         {PINNED.map((item) => (
-          <NavLink key={item.href} item={item} active={isActive(pathname, item.href)} />
+          <NavLink key={item.href} item={item} active={isActive(pathname, item.href)} count={0} />
         ))}
       </div>
     </aside>
