@@ -1,6 +1,8 @@
-import { ExternalLink } from "lucide-react";
+import Link from "next/link";
+import { ExternalLink, Plus } from "lucide-react";
 
 import { PageHeader, PageShell } from "@/components/app/page-header";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { StatusChip } from "@/components/status-chip";
 import { listAllWorks, type Work } from "@/lib/works";
@@ -17,6 +19,13 @@ export default async function CaseStudiesPage() {
         title="Case Studies"
         subtitle={
           works.length ? `${works.length} total · ${published} published` : "Your portfolio case studies appear here"
+        }
+        actions={
+          <Button asChild size="sm">
+            <Link href="/dashboard/case-studies/new">
+              <Plus className="size-4" /> New case study
+            </Link>
+          </Button>
         }
       />
 

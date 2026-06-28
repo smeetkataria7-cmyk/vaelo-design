@@ -1,7 +1,9 @@
-import { Sparkles } from "lucide-react";
+import Link from "next/link";
+import { Sparkles, Plus } from "lucide-react";
 
 import { PageHeader, PageShell } from "@/components/app/page-header";
 import { AccentAvatar } from "@/components/app/accent-avatar";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { StatusChip } from "@/components/status-chip";
 import { listBrandBrains, type BrandBrain } from "@/lib/brand-brain";
@@ -55,6 +57,13 @@ export default async function BrandBrainPage() {
       <PageHeader
         title="Brand Brain"
         subtitle={brains.length ? `${brains.length} client brand profiles` : "Brand profiles your clients fill in appear here"}
+        actions={
+          <Button asChild size="sm">
+            <Link href="/dashboard/brand-brain/new">
+              <Plus className="size-4" /> Add / update
+            </Link>
+          </Button>
+        }
       />
 
       {brains.length === 0 ? (

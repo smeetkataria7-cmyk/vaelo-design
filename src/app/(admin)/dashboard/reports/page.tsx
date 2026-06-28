@@ -1,6 +1,8 @@
-import { ExternalLink } from "lucide-react";
+import Link from "next/link";
+import { ExternalLink, Plus } from "lucide-react";
 
 import { PageHeader, PageShell } from "@/components/app/page-header";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { StatusChip } from "@/components/status-chip";
 import {
@@ -26,6 +28,13 @@ export default async function ReportsPage() {
       <PageHeader
         title="Reports"
         subtitle={reports.length ? `${reports.length} performance reports` : "Client performance reports appear here"}
+        actions={
+          <Button asChild size="sm">
+            <Link href="/dashboard/reports/new">
+              <Plus className="size-4" /> New report
+            </Link>
+          </Button>
+        }
       />
 
       {reports.length === 0 ? (
