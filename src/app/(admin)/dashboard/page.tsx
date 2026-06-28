@@ -5,7 +5,7 @@ import { MetricCard } from "@/components/app/metric-card";
 import { Card } from "@/components/ui/card";
 import { StatusChip, type ChipTone } from "@/components/status-chip";
 import { getViewer } from "@/lib/auth";
-import { listClientOptions } from "@/lib/clients";
+import { listClients } from "@/lib/clients";
 import { listProjects } from "@/lib/projects";
 import { listInvoices, type Invoice } from "@/lib/invoices";
 import { listProposals } from "@/lib/proposals";
@@ -27,7 +27,7 @@ export default async function DashboardPage() {
   const name = viewer.email ? viewer.email.split("@")[0] : "there";
 
   const [clients, projects, invoices, proposals, leads] = await Promise.all([
-    listClientOptions().catch(() => []),
+    listClients().catch(() => []),
     listProjects().catch(() => []),
     listInvoices().catch(() => []),
     listProposals().catch(() => []),

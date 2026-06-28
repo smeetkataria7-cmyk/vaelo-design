@@ -5,7 +5,7 @@ import { Sidebar } from "@/components/app/sidebar";
 import { getViewer, roleLabel } from "@/lib/auth";
 import { getLeads } from "@/lib/leads";
 import { listProjects } from "@/lib/projects";
-import { listClientOptions } from "@/lib/clients";
+import { listClients } from "@/lib/clients";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +24,7 @@ export default async function AdminLayout({
   const [leads, projects, clients] = await Promise.all([
     getLeads().catch(() => []),
     listProjects().catch(() => []),
-    listClientOptions().catch(() => []),
+    listClients().catch(() => []),
   ]);
   const counts = {
     leads: leads.filter((l) => (l.status || "new") === "new").length,

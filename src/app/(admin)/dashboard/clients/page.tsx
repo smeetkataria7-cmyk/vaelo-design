@@ -5,7 +5,7 @@ import { AccentAvatar } from "@/components/app/accent-avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { StatusChip } from "@/components/status-chip";
-import { listClientOptions } from "@/lib/clients";
+import { listClients } from "@/lib/clients";
 import { listProjects } from "@/lib/projects";
 import { accentFor } from "@/lib/accent";
 
@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 
 export default async function ClientsPage() {
   const [clients, projects] = await Promise.all([
-    listClientOptions().catch(() => []),
+    listClients().catch(() => []),
     listProjects().catch(() => []),
   ]);
 
