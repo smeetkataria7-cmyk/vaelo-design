@@ -108,8 +108,10 @@ export default async function TeamPage() {
           </Button>
         </form>
         <p className="text-[12px] text-muted-2">
-          We email them a link to set a password. <span className="text-ink-2">Clients</span> land in
-          the portal; <span className="text-ink-2">admins</span> get the dashboard; <span className="text-ink-2">master admins</span> also get Finance &amp; Team.
+          Sets their role, then they sign up at the login page with this email.
+          <span className="text-ink-2"> Clients</span> land in the portal;
+          <span className="text-ink-2"> admins</span> get the dashboard;
+          <span className="text-ink-2"> master admins</span> also get Finance &amp; Team.
         </p>
         {dbError && (
           <p className="text-[12px] text-error">
