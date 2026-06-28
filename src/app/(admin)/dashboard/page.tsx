@@ -1,181 +1,112 @@
-import { Download, Play } from "lucide-react";
+import Link from "next/link";
 
-import { getViewer } from "@/lib/auth";
 import { PageHeader, PageShell } from "@/components/app/page-header";
 import { MetricCard } from "@/components/app/metric-card";
-import { OutputChart } from "@/components/charts/output-chart";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { StatusChip } from "@/components/status-chip";
-import {
-  activityFeed,
-  caseStudies,
-  creativeOutput,
-  dashboardMetrics,
-  recentCreatives,
-} from "@/lib/mock";
-
-function renderBold(text: string) {
-  return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
-    part.startsWith("**") && part.endsWith("**") ? (
-      <span key={i} className="font-medium text-ink">
-        {part.slice(2, -2)}
-      </span>
-    ) : (
-      <span key={i}>{part}</span>
-    )
-  );
-}
-
-const ACTIVITY_DOT: Record<string, string> = {
-  success: "var(--success)",
-  info: "var(--info)",
-  neutral: "var(--muted)",
-  error: "var(--error)",
-};
-
-function Segmented() {
-  const opts = ["7d", "30d", "Custom"];
-  return (
-    <div className="flex items-center rounded-lg border border-line bg-input-bg p-0.5">
-      {opts.map((o) => (
-        <button
-          key={o}
-          className={
-            o === "30d"
-              ? "rounded-md bg-surface-4 px-3 py-1.5 text-[12px] font-medium text-ink"
-              : "rounded-md px-3 py-1.5 text-[12px] text-muted hover:text-ink-2"
-          }
-        >
-          {o}
-        </button>
-      ))}
-    </div>
-  );
-}
+import { StatusChip, type ChipTone } from "@/components/status-chip";
+import { getViewer } from "@/lib/auth";
+import { listClientOptions } from "@/lib/clients";
+import { listProjects } from "@/lib/projects";
+import { listInvoices, type Invoice } from "@/lib/invoices";
+import { listProposals } from "@/lib/proposals";
+import { getLeads } from "@/lib/leads";
+import { formatINR } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
+
+const INV_TONE: Record<Invoice["status"], ChipTone> = {
+  draft: "neutral",
+  sent: "warning",
+  paid: "success",
+  overdue: "error",
+  void: "neutral",
+};
 
 export default async function DashboardPage() {
   const viewer = await getViewer();
   const name = viewer.email ? viewer.email.split("@")[0] : "there";
 
+  const [clients, projects, invoices, proposals, leads] = await Promise.all([
+    listClientOptions().catch(() => []),
+    listProjects().catch(() => []),
+    listInvoices().catch(() => []),
+    listProposals().catch(() => []),
+    getLeads().catch(() => []),
+  ]);
+
+  const activeProjects = projects.filter((p) => p.status === "active").length;
+  const outstanding = invoices
+    .filter((i) => i.status === "sent" || i.status === "overdue")
+    .reduce((s, i) => s + i.total, 0);
+  const openProposals = proposals.filter((p) => p.status === "sent" || p.status === "viewed").length;
+
+  const metrics = [
+    { label: "Clients", value: clients.length },
+    { label: "Active projects", value: activeProjects },
+    { label: "Outstanding", value: formatINR(outstanding) },
+    { label: "Open proposals", value: openProposals },
+  ];
+
   return (
     <PageShell>
-      <PageHeader
-        title="Dashboard"
-        subtitle={`Welcome back, ${name}. Here's what's happening.`}
-        actions={
-          <>
-            <Segmented />
-            <Button variant="secondary" size="sm">
-              <Download className="size-4" /> Export
-            </Button>
-          </>
-        }
-      />
+      <PageHeader title="Dashboard" subtitle={`Welcome back, ${name}. Here's your workspace.`} />
 
-      {/* Metric grid */}
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {dashboardMetrics.map((m) => (
-          <MetricCard key={m.label} {...m} />
+        {metrics.map((m) => (
+          <MetricCard key={m.label} label={m.label} value={m.value} />
         ))}
       </div>
 
-      {/* 3-up row */}
-      <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-12">
-        {/* Recent creatives */}
-        <Card className="lg:col-span-6">
+      <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
+        {/* Recent leads */}
+        <Card className="overflow-hidden p-0">
           <div className="flex items-center justify-between p-5 pb-3">
-            <h2 className="font-display text-[17px] text-ink">Recent Creatives</h2>
-            <button className="text-[12px] text-gold hover:underline">View all →</button>
+            <h2 className="font-display text-[16px] text-ink">Recent leads</h2>
+            <Link href="/dashboard/crm" className="text-[12px] text-gold hover:underline">View all →</Link>
           </div>
-          <div className="grid grid-cols-4 gap-2.5 p-5 pt-0">
-            {recentCreatives.map((c) => (
-              <div
-                key={c.id}
-                className="group relative aspect-square overflow-hidden rounded-[10px]"
-                style={{
-                  background: `linear-gradient(150deg, ${c.grad[0]}, ${c.grad[1]})`,
-                }}
-              >
-                <div className="absolute inset-0 grid place-items-center opacity-90 transition-opacity group-hover:opacity-100">
-                  <div className="grid size-7 place-items-center rounded-full bg-black/35 backdrop-blur-sm">
-                    <Play className="size-3 fill-white text-white" />
+          {leads.length === 0 ? (
+            <p className="px-5 pb-5 text-[12px] text-muted-2">No leads yet.</p>
+          ) : (
+            <div className="divide-y divide-line-2">
+              {leads.slice(0, 5).map((l) => (
+                <div key={l.id} className="flex items-center justify-between px-5 py-3">
+                  <div className="min-w-0">
+                    <div className="truncate text-[13px] text-ink">{l.brand || l.name}</div>
+                    <div className="truncate text-[11px] text-muted-2">{l.email}</div>
                   </div>
+                  <StatusChip tone="warning" className="capitalize">{l.status || "new"}</StatusChip>
                 </div>
-                <span className="absolute bottom-1.5 right-1.5 rounded bg-black/55 px-1.5 py-0.5 text-[9px] font-medium text-white">
-                  {c.duration}
-                </span>
-              </div>
-            ))}
-            <div className="grid aspect-square place-items-center rounded-[10px] border border-dashed border-line text-[11px] text-muted-2">
-              +4 more
+              ))}
             </div>
-          </div>
+          )}
         </Card>
 
-        {/* Case studies */}
-        <Card className="lg:col-span-3">
+        {/* Recent invoices */}
+        <Card className="overflow-hidden p-0">
           <div className="flex items-center justify-between p-5 pb-3">
-            <h2 className="font-display text-[17px] text-ink">Case Studies</h2>
-            <button className="text-[12px] text-gold hover:underline">All →</button>
+            <h2 className="font-display text-[16px] text-ink">Recent invoices</h2>
+            <Link href="/dashboard/invoicing" className="text-[12px] text-gold hover:underline">View all →</Link>
           </div>
-          <div className="flex flex-col gap-2 p-5 pt-0">
-            {caseStudies.slice(0, 3).map((cs) => (
-              <div
-                key={cs.id}
-                className="rounded-[10px] border border-line-2 bg-paper-2/40 p-3"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="size-1.5 rounded-full" style={{ background: cs.accent }} />
-                  <span className="eyebrow !text-muted-2">{cs.clientName}</span>
-                  <div className="ml-auto">
-                    <StatusChip tone={cs.status === "published" ? "success" : "neutral"}>
-                      {cs.status === "published" ? "Published" : "Draft"}
-                    </StatusChip>
+          {invoices.length === 0 ? (
+            <p className="px-5 pb-5 text-[12px] text-muted-2">No invoices yet.</p>
+          ) : (
+            <div className="divide-y divide-line-2">
+              {invoices.slice(0, 5).map((inv) => (
+                <div key={inv.id} className="flex items-center justify-between px-5 py-3">
+                  <div className="min-w-0">
+                    <div className="truncate text-[13px] text-ink">{inv.number}</div>
+                    <div className="truncate text-[11px] text-muted-2">{inv.client_name || inv.client_email}</div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="font-display text-[13px] text-ink">{formatINR(inv.total)}</span>
+                    <StatusChip tone={INV_TONE[inv.status]} className="capitalize">{inv.status}</StatusChip>
                   </div>
                 </div>
-                <div className="mt-1.5 text-[13px] font-medium text-ink">{cs.title}</div>
-                <div className="mt-0.5 text-[11px] text-muted-2">Updated {cs.updated}</div>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        {/* Activity */}
-        <Card className="lg:col-span-3">
-          <div className="p-5 pb-3">
-            <h2 className="font-display text-[17px] text-ink">Activity</h2>
-          </div>
-          <div className="flex flex-col gap-3.5 p-5 pt-0">
-            {activityFeed.map((a) => (
-              <div key={a.id} className="flex gap-2.5">
-                <span
-                  className="mt-1.5 size-1.5 shrink-0 rounded-full"
-                  style={{ background: ACTIVITY_DOT[a.kind] }}
-                />
-                <div className="leading-tight">
-                  <div className="text-[12.5px] text-muted">{renderBold(a.text)}</div>
-                  <div className="mt-0.5 text-[11px] text-muted-3">{a.time}</div>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </Card>
       </div>
-
-      {/* Chart */}
-      <Card className="mt-5 p-5">
-        <div className="mb-2 flex items-center justify-between">
-          <div>
-            <h2 className="font-display text-[17px] text-ink">Creative Output</h2>
-            <p className="text-[11px] text-muted-2">uploads per day · last 7 days</p>
-          </div>
-          <span className="text-[12px] font-medium text-gold">75 total</span>
-        </div>
-        <OutputChart data={creativeOutput} />
-      </Card>
     </PageShell>
   );
 }
