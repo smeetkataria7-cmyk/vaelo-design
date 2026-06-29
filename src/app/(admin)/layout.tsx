@@ -6,6 +6,7 @@ import { getViewer, roleLabel } from "@/lib/auth";
 import { getLeads } from "@/lib/leads";
 import { listProjects } from "@/lib/projects";
 import { listClients } from "@/lib/clients";
+import { getNotifications } from "@/lib/notifications";
 
 export const dynamic = "force-dynamic";
 
@@ -20,11 +21,12 @@ export default async function AdminLayout({
   if (!viewer.email) redirect("/auth/login?next=/dashboard");
   if (!viewer.isAdmin) redirect("/portal");
 
-  // Real sidebar badge counts (no hard-coded demo numbers).
-  const [leads, projects, clients] = await Promise.all([
+  // Real sidebar badge counts (no hard-coded demo numbers) + notifications.
+  const [leads, projects, clients, notifications] = await Promise.all([
     getLeads().catch(() => []),
     listProjects().catch(() => []),
     listClients().catch(() => []),
+    getNotifications().catch(() => []),
   ]);
   const counts = {
     leads: leads.filter((l) => (l.status || "new") === "new").length,
@@ -34,11 +36,7 @@ export default async function AdminLayout({
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-paper">
-      <Header
-        searchPlaceholder="Search clients, assets, case studies…"
-        email={viewer.email}
-        roleLabel={roleLabel(viewer)}
-      />
+      <Header email={viewer.email} roleLabel={roleLabel(viewer)} notifications={notifications} />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar isSuper={viewer.isSuper} counts={counts} />
         <main className="flex-1 overflow-y-auto bg-paper-2">{children}</main>
